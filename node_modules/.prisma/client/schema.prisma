@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Candidate {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  name       String
+  resumeUrl  String?
+  interviews Interview[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("candidates")
+}
+
+model Interviewer {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  name       String
+  role       String?
+  interviews Interview[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("interviewers")
+}
+
+model Interview {
+  id            String          @id @default(uuid())
+  title         String
+  description   String?
+  scheduledAt   DateTime
+  status        InterviewStatus @default(SCHEDULED)
+  candidateId   String
+  candidate     Candidate       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  interviewerId String
+  interviewer   Interviewer     @relation(fields: [interviewerId], references: [id], onDelete: Cascade)
+  feedback      Feedback?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@map("interviews")
+}
+
+model Feedback {
+  id          String    @id @default(uuid())
+  score       Int
+  notes       String?
+  interviewId String    @unique
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("feedbacks")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
